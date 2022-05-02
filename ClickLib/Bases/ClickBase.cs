@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-
+using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Reloaded.Memory.Sources;
@@ -42,6 +42,7 @@ namespace ClickLib
         protected static void InvokeReceiveEvent(AtkEventListener* eventListener, EventType type, uint which, EventData eventData, InputData inputData)
         {
             var receiveEvent = GetReceiveEvent(eventListener);
+            PluginLog.Debug($"{(ulong)eventListener:X},   {(ushort)type:X},   {which:X},   {(ulong)eventData.Data:X}->[0 {(ulong)eventData.Data[1]:X} {(ulong)eventData.Data[2]:X}],   {(ulong)inputData.Data}->[{(ulong)inputData.Data[0]:X}]");
             receiveEvent(eventListener, type, which, eventData.Data, inputData.Data);
         }
 
@@ -142,6 +143,20 @@ namespace ClickLib
             {
                 var data = new InputData();
                 data.Data[0] = popupMenu->List->ItemRendererList[index].AtkComponentListItemRenderer;
+                data.Data[2] = (void*)(index | ((ulong)index << 48));
+                return data;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="InputData"/> class.
+            /// </summary>
+            /// <param name="contextIconMenu">List popup menu.</param>
+            /// <param name="index">Selected index.</param>
+            /// <returns>Input data.</returns>
+            public static InputData ForContextIconMenu(void* contextIconMenu, ushort index)
+            {
+                var data = new InputData();
+                data.Data[0] = contextIconMenu;
                 data.Data[2] = (void*)(index | ((ulong)index << 48));
                 return data;
             }

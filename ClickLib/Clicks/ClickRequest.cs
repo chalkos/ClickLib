@@ -47,5 +47,14 @@ namespace ClickLib.Clicks
         {
             ClickAddonButton(&this.Addon->AtkUnitBase, this.Addon->CancelButton, 1);
         }
+
+        /// <summary>
+        /// Right click item.
+        /// </summary>
+        [ClickName("request_item1")]
+        public void Item1()
+        {
+            ClickAddonDragDrop(&this.Addon->AtkUnitBase, this.Addon->AtkComponentDragDrop250, 12);
+        }
     }
 }

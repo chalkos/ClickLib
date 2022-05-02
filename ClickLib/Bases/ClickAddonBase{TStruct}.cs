@@ -1,5 +1,6 @@
 ﻿using System;
-
+using Dalamud.Hooking;
+using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -120,6 +121,52 @@ namespace ClickLib
             inputData ??= InputData.Empty();
 
             InvokeReceiveEvent(&addonBase->AtkEventListener, type, which, eventData, inputData);
+        }
+
+        /// <summary>
+        /// Send a click.
+        /// </summary>
+        /// <param name="addonContextIconMenu">AddonContextIconMenu addon.</param>
+        /// <param name="index">List index.</param>
+        /// <param name="type">Event type.</param>
+        protected static void ClickItemListRenderer(AddonContextIconMenu* addonContextIconMenu, ushort index)
+        {
+            var targetList = addonContextIconMenu->AtkComponentList240;
+            if (index < 0 || index >= addonContextIconMenu->EntryCount)
+                throw new ArgumentOutOfRangeException(nameof(index), "List index is out of range");
+
+            var listItemRenderer = targetList->ItemRendererList[index].AtkComponentListItemRenderer;
+
+            var eventData = EventData.ForNormalTarget(
+                targetList->AtkComponentBase.OwnerNode,
+                addonContextIconMenu);
+            var inputData = InputData.ForContextIconMenu(&listItemRenderer->AtkComponentButton.AtkComponentBase.AtkEventListener, index);
+
+            // if (firstEvent)
+            // {
+            //     InvokeReceiveEvent(
+            //         &addonContextIconMenu->AtkUnitBase.AtkEventListener,
+            //         EventType.LIST_ITEM_CLICK,
+            //         3,
+            //         eventData,
+            //         inputData);
+            // }
+            // else
+            // {
+            //inputData.Data[2] = (void*)(index | ((ulong)index << 48));
+                InvokeReceiveEvent(
+                    &addonContextIconMenu->AtkUnitBase.AtkEventListener,
+                    EventType.LIST_INDEX_CHANGE,
+                    0,
+                    eventData,
+                    inputData);
+            // }
+        }
+
+        private static void InvokeReceiveEvent2(AtkEventListener* eventListener, EventType type, uint which, EventData eventData,
+            InputData inputData)
+        {
+            PluginLog.Debug($"{(ulong)eventListener:X},   {(ushort)type:X},   {which:X},   {(ulong)eventData.Data:X}->[0 {(ulong)eventData.Data[1]:X} {(ulong)eventData.Data[2]:X}],   {(ulong)inputData.Data}->[{(ulong)inputData.Data[0]:X}]");
         }
 
         /// <summary>
